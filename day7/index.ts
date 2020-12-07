@@ -1,32 +1,68 @@
-import fs from "fs";
-import path from "path";
+import { getLines } from '../util/todaysInput'
+console.time("test");
+const lines = getLines(7);
 
-const filePath = path.resolve(__dirname, `../day${7}`, "input.txt");
-const text = fs.readFileSync(filePath, "utf-8");
-const lines = text.split(/\r?\n/);
-const groups = text.split(/\r?\n\r?\n/);
+const bags = Object.fromEntries(lines.map(parse));
 
-const tempr1 = /(\d+)-(\d+) (\D): ([a-z]+)/gm.exec("hello") as RegExpExecArray;
-const tempr2 = /^\d{9}$/gm.test("hello");
-const tempr3 = ("adasikadas".match(new RegExp("ada", "g")) || []).length;
-
-let mut1;
-let mutI1 = 0;
-let mutS1 = "";
-for (const line of lines) {
-}
-
-let mut2;
-let mutI2 = 0;
-let mutS2 = "";
-for (const group of groups) {
-  let mut3;
-  let mutI3 = 0;
-  let mutS3 = "";
-  for (const value of group) {
+// part 1
+let shinies = 0;
+for (const bag in bags) {
+  const shinyFound = magic(bag);
+  if (shinyFound) {
+    shinies++;
   }
 }
+console.log({ part1: shinies });
 
-console.log(text);
-console.log(lines);
-console.log(groups);
+// part 2
+const bagCount = magic2("shiny gold bag");
+
+console.log({ part2: bagCount });
+
+function magic(bagName: string) {
+  const contents = bags[bagName];
+  if (contents.some((child) => child.name.includes("shiny gold bag")))
+    return true;
+  else {
+    for (const content of contents) {
+      if (magic(content.name)) return true;
+    }
+  }
+  return false;
+}
+
+function magic2(bagName: string) {
+  const contents = bags[bagName];
+  if (contents.length === 0) {
+    return 0;
+  }
+  let bagCount = 0;
+  for (const content of contents) {
+    bagCount += content.count + content.count * magic2(content.name);
+  }
+  return bagCount;
+}
+
+type Contents = {
+  name: string;
+  count: number;
+};
+
+function parse(line: string): [string, Contents[]] {
+  const match = /(^\w+ \w+ bag)?s contain (.*[^.])/gm.exec(line);
+  const bagName = match[1];
+  const rest = match[2];
+  let contents = rest.split(", ");
+
+  let parsedContents: Contents[] = [];
+
+  if (!contents.includes("no other bags")) {
+    parsedContents = contents.map((childBag) => {
+      const reg = /^((\d) (\w+ \w+ bag))s?/gm.exec(childBag);
+      return { name: reg[3], count: parseInt(reg[2]) };
+    });
+  }
+  return [bagName, parsedContents];
+}
+
+console.timeEnd("test");
