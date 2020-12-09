@@ -14,3 +14,7 @@ export const getText = (day: number): string => {
 export const getLines = (day: number) => {
   return getText(day).split(/\r?\n/);
 };
+
+export const getAsNumbers = (day: number) => {
+  return getLines(day).map(line => parseInt(line));
+}
